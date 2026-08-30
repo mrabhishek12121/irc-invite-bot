@@ -1,38 +1,38 @@
 const irc = require('irc');
 
-const client = new irc.Client('irc.hybridirc.com', 'InviteBot', {
-    channels: ['#allindiachat.com', '#friendchat'],
-    port: 6697,
-    secure: true,
-    autoConnect: true
-});
+// Configuration
+const targetChannel = '#ndianchatarea'; // Change to your new channel name
+const botNames = [
+    'User_Alex',
+    'User_Priya',
+    'User_Rahul',
+    'User_Sam',
+    'User_Jessica',
+    'User_David',
+    'User_Neha'
+];
 
-const sourceChannels = ['#allindiachat.com'];
-const targetChannel = '#friendchat';
-let inviteCount = 0;
-let lastResetTime = Date.now();
-const maxInvitesPerMinute = 10;
+const bots = [];
 
-client.addListener('registered', () => {
-    console.log('[+] Connected to HybridIRC as InviteBot');
-});
+// Spawn each fake user connection
+botNames.forEach((nick, index) => {
+    // Stagger connections by 3 seconds to avoid server rate-limits
+    setTimeout(() => {
+        const client = new irc.Client('irc.hybridirc.com', nick, {
+            channels: [targetChannel],
+            port: 6697,
+            secure: true,
+            autoConnect: true
+        });
 
-client.addListener('join', (channel, nick) => {
-    if (nick === client.nick) return;
+        client.addListener('registered', () => {
+            console.log(`[+] ${nick} connected to ${targetChannel}`);
+        });
 
-    if (sourceChannels.includes(channel)) {
-        if (Date.now() - lastResetTime > 60000) {
-            inviteCount = 0;
-            lastResetTime = Date.now();
-        }
-        if (inviteCount >= maxInvitesPerMinute) return;
+        client.addListener('error', (message) => {
+            console.error(`[-] Error for ${nick}:`, message);
+        });
 
-        inviteCount++;
-        client.send('INVITE', nick, targetChannel);
-        console.log(`[+] Invited ${nick} to ${targetChannel}`);
-    }
-});
-
-client.addListener('error', (message) => {
-    console.error('[-] IRC Error:', message);
+        bots.push(client);
+    }, index * 3000);
 });
