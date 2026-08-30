@@ -6,6 +6,6 @@
     "start": "node bot.js"
   },
   "dependencies": {
-    "irc-up": "^0.7.0"
+    "irc": "^0.5.2"
   }
 }
