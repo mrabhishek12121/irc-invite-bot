@@ -3,11 +3,11 @@ const irc = require('node-irc');
 const CONFIG = {
     nickname: 'InviteBot',
     username: 'invitebot',
-    server: 'irc.hybridirc.com',             // HybridIRC server address
+    server: 'irc.hybridirc.com',
     port: 6697,
     useSsl: true,
-    sourceChannels: ['#allindiachat.com'],   // Channel to watch for users
-    targetChannel: '#friendchat',            // Your channel to invite users to
+    sourceChannels: ['#allindiachat.com'],
+    targetChannel: '#friendchat',
     inviteDelay: 1000,
     maxInvitesPerMinute: 10,
 };
