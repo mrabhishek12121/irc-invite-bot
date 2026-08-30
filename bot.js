@@ -1,10 +1,10 @@
-const irc = require('irc-up');
+const irc = require('irc');
 
 const client = new irc.Client('irc.hybridirc.com', 'InviteBot', {
     channels: ['#allindiachat.com', '#friendchat'],
     port: 6697,
     secure: true,
-    realName: 'InviteBot'
+    autoConnect: true
 });
 
 const sourceChannels = ['#allindiachat.com'];
@@ -14,7 +14,7 @@ let lastResetTime = Date.now();
 const maxInvitesPerMinute = 10;
 
 client.addListener('registered', () => {
-    console.log('[+] Connected as InviteBot');
+    console.log('[+] Connected to HybridIRC as InviteBot');
 });
 
 client.addListener('join', (channel, nick) => {
