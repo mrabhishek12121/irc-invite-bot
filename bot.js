@@ -1,47 +1,38 @@
-const irc = require('node-irc');
+const irc = require('irc-up');
 
-const CONFIG = {
-    nickname: 'InviteBot',
-    username: 'invitebot',
-    server: 'irc.hybridirc.com',
+const client = new irc.Client('irc.hybridirc.com', 'InviteBot', {
+    channels: ['#allindiachat.com', '#friendchat'],
     port: 6697,
-    useSsl: true,
-    sourceChannels: ['#allindiachat.com'],
-    targetChannel: '#friendchat',
-    inviteDelay: 1000,
-    maxInvitesPerMinute: 10,
-};
+    secure: true,
+    realName: 'InviteBot'
+});
 
+const sourceChannels = ['#allindiachat.com'];
+const targetChannel = '#friendchat';
 let inviteCount = 0;
 let lastResetTime = Date.now();
+const maxInvitesPerMinute = 10;
 
-const client = irc.connect(CONFIG);
-
-client.on('connected', () => {
-    console.log(`[+] Connected as ${CONFIG.nickname}`);
-    CONFIG.sourceChannels.forEach(ch => client.join(ch));
-    client.join(CONFIG.targetChannel);
+client.addListener('registered', () => {
+    console.log('[+] Connected as InviteBot');
 });
 
-client.on('join', (channel, nickname) => {
-    if (nickname === CONFIG.nickname) return;
-    if (CONFIG.sourceChannels.includes(channel)) {
-        handleInvite(nickname);
+client.addListener('join', (channel, nick) => {
+    if (nick === client.nick) return;
+
+    if (sourceChannels.includes(channel)) {
+        if (Date.now() - lastResetTime > 60000) {
+            inviteCount = 0;
+            lastResetTime = Date.now();
+        }
+        if (inviteCount >= maxInvitesPerMinute) return;
+
+        inviteCount++;
+        client.send('INVITE', nick, targetChannel);
+        console.log(`[+] Invited ${nick} to ${targetChannel}`);
     }
 });
 
-function handleInvite(nickname) {
-    if (Date.now() - lastResetTime > 60000) {
-        inviteCount = 0;
-        lastResetTime = Date.now();
-    }
-    if (inviteCount >= CONFIG.maxInvitesPerMinute) return;
-
-    inviteCount++;
-    client.invite(nickname, CONFIG.targetChannel);
-    console.log(`[+] Invited ${nickname} to ${CONFIG.targetChannel}`);
-}
-
-client.on('error', (message) => {
-    console.error(`[-] Error: ${message.message}`);
+client.addListener('error', (message) => {
+    console.error('[-] IRC Error:', message);
 });
